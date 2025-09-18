@@ -1,37 +1,58 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { db } from '../../firebase';
+import { useAuth } from '../../hooks';
+import { toast } from 'sonner';
 
 export const Profile = () => {
-  const user = auth.currentUser;
+  const { user, loading: authLoading } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const userRef = user ? doc(db, 'users', user.uid) : null;
+  const fetchProfile = async () => {
+    if (!user) {
+      return;
+    }
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!userRef) return;
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-      } else {
-        await setDoc(userRef, { firstName: '', lastName: '', wishlist: [] });
-      }
-      setLoading(false);
-    };
-    fetchProfile();
-  }, [userRef]);
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
 
-  const handleSave = async () => {
-    if (!userRef) return;
-    await updateDoc(userRef, { firstName, lastName });
+    if (snap.exists()) {
+      const data = snap.data();
+      setFirstName(data.firstName || '');
+      setLastName(data.lastName || '');
+    } else {
+      await setDoc(userRef, { firstName: '', lastName: '', wishlist: [] });
+    }
+    setLoading(false);
   };
 
-  if (loading) return <p>Ładowanie profilu...</p>;
+  useEffect(() => {
+    if (!authLoading) {
+      void fetchProfile();
+    }
+  }, [user, authLoading]);
+
+  const handleSave = async () => {
+    if (!user) {
+      return;
+    }
+
+    const userRef = doc(db, 'users', user.uid);
+
+    try {
+      await updateDoc(userRef, { firstName, lastName });
+      toast.success('Profil zapisany pomyślnie');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      toast.error('Wystąpił problem z zapisaniem profilu: ' + e.message);
+    }
+  };
+
+  if (loading || authLoading) {
+    return <p>Ładowanie profilu...</p>;
+  }
 
   return (
     <div className='bg-white shadow rounded p-4 mb-6'>

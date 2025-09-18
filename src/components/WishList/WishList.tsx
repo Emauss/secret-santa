@@ -1,30 +1,35 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { db } from '../../firebase';
+import { useAuth } from '../../hooks';
 
 export const Wishlist = () => {
-  const user = auth.currentUser;
+  const { user, loading: authLoading } = useAuth();
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [newItem, setNewItem] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const userRef = user ? doc(db, 'users', user.uid) : null;
+  const fetchWishlist = async () => {
+    if (!user) {
+      return;
+    }
 
-  useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!userRef) return;
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setWishlist(data.wishlist || []);
-      }
-      setLoading(false);
-    };
-    fetchWishlist();
-  }, [userRef]);
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      setWishlist(data.wishlist || []);
+    }
+    setLoading(false);
+  };
 
   const handleAdd = async () => {
-    if (!userRef || !newItem.trim()) return;
+    if (!user || !newItem.trim()) {
+      return;
+    }
+    const userRef = doc(db, 'users', user.uid);
+
     const updated = [...wishlist, newItem.trim()];
     setWishlist(updated);
     setNewItem('');
@@ -32,17 +37,29 @@ export const Wishlist = () => {
   };
 
   const handleRemove = async (item: string) => {
-    if (!userRef) return;
+    if (!user) {
+      return;
+    }
+    const userRef = doc(db, 'users', user.uid);
+
     const updated = wishlist.filter((i) => i !== item);
     setWishlist(updated);
     await updateDoc(userRef, { wishlist: updated });
   };
 
-  if (loading) return <p>Ładowanie listy życzeń...</p>;
+  useEffect(() => {
+    if (!authLoading) {
+      void fetchWishlist();
+    }
+  }, [user, authLoading]);
+
+  if (loading) {
+    return <p>Ładowanie listy życzeń...</p>;
+  }
 
   return (
     <div className='bg-white shadow rounded p-4 mb-6'>
-      <h2 className='text-lg font-semibold mb-2'>Moja wishlist 🎁</h2>
+      <h2 className='text-lg font-semibold mb-2'>Moja lista życzeń 🎁</h2>
       <div className='flex gap-2 mb-2'>
         <input
           type='text'
@@ -55,10 +72,10 @@ export const Wishlist = () => {
           +
         </button>
       </div>
-      <ul className='list-disc pl-5'>
+      <ul className='list-disc mt-4'>
         {wishlist.map((item) => (
           <li key={item} className='flex justify-between items-center mb-1'>
-            <span>{item}</span>
+            <span>✅&nbsp;{item}</span>
             <button onClick={() => handleRemove(item)} className='text-red-500 cursor-pointer hover:underline text-sm'>
               usuń
             </button>
