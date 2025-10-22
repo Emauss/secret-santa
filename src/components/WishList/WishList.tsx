@@ -58,7 +58,7 @@ export const Wishlist = () => {
   }
 
   return (
-    <div className='bg-white shadow rounded p-4 mb-6'>
+    <div className='bg-white shadow rounded p-4'>
       <h2 className='text-lg font-semibold mb-2'>Moja lista życzeń 🎁</h2>
       <div className='flex gap-2 mb-2'>
         <input

@@ -12,10 +12,13 @@ type Recipient = {
 export const MyRecipient = () => {
   const { user, loading: authLoading } = useAuth();
   const [recipient, setRecipient] = useState<Recipient | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchRecipient = async () => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     // we're checking the 'pairs' collection to find the recipient assigned to the current user
     const pairRef = doc(db, 'pairs', user.uid);
@@ -40,6 +43,21 @@ export const MyRecipient = () => {
     setLoading(false);
   };
 
+  const drawRecipient = async () => {
+    setIsDrawing(true);
+    const userRef = doc(db, 'users', user!.uid);
+    const snap = await getDoc(userRef);
+    const data = snap.data();
+
+    if (!data?.firstName || !data?.lastName || !data?.wishlist?.length) {
+      setIsDrawing(false);
+      return alert('Uzupełnij najpierw swój profil oraz listę życzeń, aby móc wylosować osobę.');
+    }
+
+    alert('Funkcja losowania wylosowanej osoby nie jest jeszcze zaimplementowana.');
+    setIsDrawing(false);
+  };
+
   useEffect(() => {
     if (!authLoading) {
       void fetchRecipient();
@@ -50,10 +68,21 @@ export const MyRecipient = () => {
     return <p>Ładowanie wylosowanej osoby...</p>;
   }
 
+  if (isDrawing) {
+    return (
+      <div className='bg-yellow-100 p-4 rounded shadow'>
+        <p>Losowanie w toku...</p>
+      </div>
+    );
+  }
+
   if (!recipient) {
     return (
       <div className='bg-yellow-100 p-4 rounded shadow'>
         <p>Nie masz jeszcze wylosowanej osoby 🎅</p>
+        <button onClick={drawRecipient} className='bg-red-600 text-white px-4 py-2 cursor-pointer rounded hover:bg-red-700 mt-3'>
+          Wylosuj 🎲
+        </button>
       </div>
     );
   }
