@@ -55,7 +55,7 @@ export const Profile = () => {
   }
 
   return (
-    <div className='bg-white shadow rounded p-4 mb-6'>
+    <div className='bg-white shadow rounded p-4'>
       <h2 className='text-lg font-semibold mb-2'>Profil</h2>
       <input
         type='text'
