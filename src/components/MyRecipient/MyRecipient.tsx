@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
+import { toast } from 'sonner';
 
 type Recipient = {
   firstName: string;
@@ -12,31 +13,43 @@ type Recipient = {
 export const MyRecipient = () => {
   const { user, loading: authLoading } = useAuth();
   const [recipient, setRecipient] = useState<Recipient | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   const fetchRecipient = async () => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
-    // we're checking the 'pairs' collection to find the recipient assigned to the current user
     const pairRef = doc(db, 'pairs', user.uid);
     const pairSnap = await getDoc(pairRef);
 
     if (pairSnap.exists()) {
-      const { recipientId } = pairSnap.data() as { recipientId: string };
-      if (recipientId) {
-        const recipientRef = doc(db, 'users', recipientId);
-        const recipientSnap = await getDoc(recipientRef);
-        if (recipientSnap.exists()) {
-          const data = recipientSnap.data();
-          setRecipient({
-            firstName: data.firstName || '',
-            lastName: data.lastName || '',
-            wishlist: data.wishlist || [],
-          });
-        }
+      const { recipientId, revealed } = pairSnap.data() as {
+        recipientId: string;
+        revealed?: boolean;
+      };
+
+      if (!recipientId) {
+        setLoading(false);
+        return;
+      }
+
+      // Jeśli para została przypisana, ale jeszcze nie odkryta — użytkownik jej nie widzi
+      if (!revealed) {
+        setRecipient(null);
+        setLoading(false);
+        return;
+      }
+
+      const recipientRef = doc(db, 'users', recipientId);
+      const recipientSnap = await getDoc(recipientRef);
+
+      if (recipientSnap.exists()) {
+        const data = recipientSnap.data();
+        setRecipient({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          wishlist: data.wishlist || [],
+        });
       }
     }
 
@@ -44,18 +57,36 @@ export const MyRecipient = () => {
   };
 
   const drawRecipient = async () => {
+    if (!user) {
+      return;
+    }
     setIsDrawing(true);
-    const userRef = doc(db, 'users', user!.uid);
-    const snap = await getDoc(userRef);
-    const data = snap.data();
 
-    if (!data?.firstName || !data?.lastName || !data?.wishlist?.length) {
+    const pairRef = doc(db, 'pairs', user.uid);
+    const pairSnap = await getDoc(pairRef);
+
+    if (!pairSnap.exists()) {
       setIsDrawing(false);
-      return alert('Uzupełnij najpierw swój profil oraz listę życzeń, aby móc wylosować osobę.');
+      return alert('Nie masz jeszcze przypisanej osoby. Admin musi najpierw przeprowadzić losowanie.');
     }
 
-    alert('Funkcja losowania wylosowanej osoby nie jest jeszcze zaimplementowana.');
+    const { revealed } = pairSnap.data() as {
+      recipientId: string;
+      revealed?: boolean;
+    };
+
+    if (revealed) {
+      setIsDrawing(false);
+      return alert('Twoja wylosowana osoba jest już odkryta 🎁');
+    }
+
+    // "Odkrywamy" osobę
+    await updateDoc(pairRef, { revealed: true });
+    await fetchRecipient();
+
     setIsDrawing(false);
+
+    toast.success('Wylosowałeś/aś swoją osobę 🎅');
   };
 
   useEffect(() => {
@@ -79,9 +110,9 @@ export const MyRecipient = () => {
   if (!recipient) {
     return (
       <div className='bg-yellow-100 p-4 rounded shadow'>
-        <p>Nie masz jeszcze wylosowanej osoby 🎅</p>
+        <p>Nie znasz jeszcze swojej wylosowanej osoby 🎅</p>
         <button onClick={drawRecipient} className='bg-red-600 text-white px-4 py-2 cursor-pointer rounded hover:bg-red-700 mt-3'>
-          Wylosuj 🎲
+          Wylosuj osobę 🎲
         </button>
       </div>
     );
@@ -95,6 +126,7 @@ export const MyRecipient = () => {
           {recipient.firstName} {recipient.lastName}
         </span>
       </p>
+
       <h3 className='font-semibold mb-1'>Lista życzeń:</h3>
       {recipient.wishlist.length > 0 ? (
         <ul className='list-disc pl-5'>
