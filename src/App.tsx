@@ -14,7 +14,7 @@ export default function App() {
   }
 
   return (
-    <div className='h-full bg-blue-100'>
+    <div className='h-full'>
       <Routes>
         {!user ? (
           <Route path='*' element={<Login />} />

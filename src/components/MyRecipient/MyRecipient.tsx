@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 type Recipient = {
   firstName: string;
@@ -33,7 +34,7 @@ export const MyRecipient = () => {
         return;
       }
 
-      // Jeśli para została przypisana, ale jeszcze nie odkryta — użytkownik jej nie widzi
+      // If not revealed, do not fetch recipient details
       if (!revealed) {
         setRecipient(null);
         setLoading(false);
@@ -54,6 +55,27 @@ export const MyRecipient = () => {
     }
 
     setLoading(false);
+  };
+
+  const launchConfetti = () => {
+    const duration = 2000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 25, spread: 360, ticks: 60, zIndex: 9999 };
+
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 80 * (timeLeft / duration);
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: Math.random(), y: Math.random() - 0.2 },
+      });
+    }, 200);
   };
 
   const drawRecipient = async () => {
@@ -80,13 +102,13 @@ export const MyRecipient = () => {
       return alert('Twoja wylosowana osoba jest już odkryta 🎁');
     }
 
-    // "Odkrywamy" osobę
+    // Set pair as revealed
     await updateDoc(pairRef, { revealed: true });
     await fetchRecipient();
-
     setIsDrawing(false);
 
     toast.success('Wylosowałeś/aś swoją osobę 🎅');
+    launchConfetti();
   };
 
   useEffect(() => {

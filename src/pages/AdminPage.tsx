@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../hooks';
 import { db } from '../firebase';
 import { Spinner } from '../components';
@@ -10,6 +10,7 @@ type UserData = {
   firstName: string;
   lastName: string;
   wishlist?: string[];
+  excludedIds?: string[];
 };
 
 export default function AdminPage() {
@@ -29,10 +30,16 @@ export default function AdminPage() {
         firstName: data.firstName || '',
         lastName: data.lastName || '',
         wishlist: data.wishlist || [],
+        excludedIds: data.excludedIds || [],
       });
     });
     setUsers(list);
     setLoading(false);
+  };
+
+  const handleExcludeChange = async (userId: string, selectedIds: string[]) => {
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, excludedIds: selectedIds } : u)));
+    await updateDoc(doc(db, 'users', userId), { excludedIds: selectedIds });
   };
 
   const drawPairs = (users: UserData[]) => {
@@ -40,12 +47,12 @@ export default function AdminPage() {
     const pairs: Record<string, string> = {};
 
     for (const giver of users) {
-      const possibleRecipients = available.filter(
-        (r) =>
-          r.id !== giver.id &&
-          !r.lastName.toLowerCase().includes(giver.lastName.toLowerCase()) &&
-          !giver.lastName.toLowerCase().includes(r.lastName.toLowerCase())
-      );
+      const possibleRecipients = available.filter((r) => {
+        const sameLastName =
+          r.lastName.toLowerCase().includes(giver.lastName.toLowerCase()) || giver.lastName.toLowerCase().includes(r.lastName.toLowerCase());
+        const excluded = giver.excludedIds?.includes(r.id);
+        return r.id !== giver.id && !sameLastName && !excluded;
+      });
 
       if (possibleRecipients.length === 0) {
         throw new Error(`Nie udało się wylosować dla ${giver.firstName} ${giver.lastName}`);
@@ -55,6 +62,7 @@ export default function AdminPage() {
       const recipient = possibleRecipients[randomIndex];
       pairs[giver.id] = recipient.id;
 
+      // remove the selected recipient from available list
       available.splice(
         available.findIndex((r) => r.id === recipient.id),
         1
@@ -73,14 +81,12 @@ export default function AdminPage() {
 
     try {
       const pairs = drawPairs(users);
-
       for (const [giverId, recipientId] of Object.entries(pairs)) {
         await setDoc(doc(db, 'pairs', giverId), {
           recipientId,
           revealed: false,
         });
       }
-
       toast.success('Losowanie zakończone pomyślnie! 🎅 Wszystkie pary zapisane.');
     } catch (err) {
       console.error(err);
@@ -94,13 +100,11 @@ export default function AdminPage() {
     if (!confirm('Czy na pewno chcesz zresetować losowanie? Wszystkie przypisania zostaną usunięte!')) {
       return;
     }
-
     setIsResetting(true);
     try {
       const snap = await getDocs(collection(db, 'pairs'));
       const deletions = snap.docs.map((docSnap) => deleteDoc(docSnap.ref));
       await Promise.all(deletions);
-
       toast.success('Losowanie zostało zresetowane 🎄');
     } catch (err) {
       console.error(err);
@@ -121,18 +125,44 @@ export default function AdminPage() {
   }
 
   return (
-    <div className='max-w-2xl mx-auto p-6'>
+    <div className='max-w-3xl mx-auto p-6'>
       <h1 className='text-2xl font-bold mb-4'>Admin – Losowanie Tajemniczego Mikołaja 🎅</h1>
 
       <div className='bg-white rounded shadow p-4 mb-4'>
         <h2 className='font-semibold mb-2'>Lista uczestników ({users.length})</h2>
-        <ul className='list-disc pl-5'>
+        <ul className='space-y-3'>
           {users.map((u) => (
-            <li key={u.id} className='flex items-center gap-2'>
-              <span>
-                {u.firstName} {u.lastName} <span className='text-gray-400 text-sm'>({u.id})</span>
-              </span>
-              <div className='ml-auto'>{u.wishlist && u.wishlist.length > 0 ? '✔️' : '❌'}</div>
+            <li key={u.id} className='border p-3 rounded'>
+              <div className='flex justify-between items-center mb-2'>
+                <div>
+                  <span className='font-medium'>
+                    {u.firstName} {u.lastName}
+                  </span>{' '}
+                  <span className='text-gray-400 text-sm'>({u.id})</span>
+                </div>
+                <div>{u.wishlist && u.wishlist.length > 0 ? '✔️' : '❌'}</div>
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium mb-1'>Nie może wylosować:</label>
+                <select
+                  multiple
+                  value={u.excludedIds || []}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                    void handleExcludeChange(u.id, selected);
+                  }}
+                  className='border rounded w-full p-2 text-sm h-24'
+                >
+                  {users
+                    .filter((cand) => cand.id !== u.id)
+                    .map((cand) => (
+                      <option key={cand.id} value={cand.id}>
+                        {cand.firstName} {cand.lastName}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </li>
           ))}
         </ul>
