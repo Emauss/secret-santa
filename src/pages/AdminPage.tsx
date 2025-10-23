@@ -13,9 +13,15 @@ type UserData = {
   excludedIds?: string[];
 };
 
+type PairData = {
+  recipientId: string;
+  revealed: boolean;
+};
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
+  const [pairs, setPairs] = useState<Record<string, PairData>>({});
   const [loading, setLoading] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -34,7 +40,16 @@ export default function AdminPage() {
       });
     });
     setUsers(list);
-    setLoading(false);
+  };
+
+  const fetchPairs = async () => {
+    const snap = await getDocs(collection(db, 'pairs'));
+    const map: Record<string, PairData> = {};
+    snap.forEach((docSnap) => {
+      const data = docSnap.data() as PairData;
+      map[docSnap.id] = { recipientId: data.recipientId, revealed: !!data.revealed };
+    });
+    setPairs(map);
   };
 
   const handleExcludeChange = async (userId: string, selectedIds: string[]) => {
@@ -62,7 +77,7 @@ export default function AdminPage() {
       const recipient = possibleRecipients[randomIndex];
       pairs[giver.id] = recipient.id;
 
-      // remove the selected recipient from available list
+      // usuń wylosowanego z listy
       available.splice(
         available.findIndex((r) => r.id === recipient.id),
         1
@@ -88,9 +103,10 @@ export default function AdminPage() {
         });
       }
       toast.success('Losowanie zakończone pomyślnie! 🎅 Wszystkie pary zapisane.');
+      await fetchPairs();
     } catch (err) {
       console.error(err);
-      alert('Błąd podczas losowania. Spróbuj ponownie.');
+      toast.error('Błąd podczas losowania. Spróbuj ponownie.');
     } finally {
       setIsDrawing(false);
     }
@@ -106,6 +122,7 @@ export default function AdminPage() {
       const deletions = snap.docs.map((docSnap) => deleteDoc(docSnap.ref));
       await Promise.all(deletions);
       toast.success('Losowanie zostało zresetowane 🎄');
+      setPairs({});
     } catch (err) {
       console.error(err);
       toast.error('Błąd podczas resetowania losowania.');
@@ -116,7 +133,11 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (user) {
-      void fetchUsers();
+      void (async () => {
+        await fetchUsers();
+        await fetchPairs();
+        setLoading(false);
+      })();
     }
   }, [user]);
 
@@ -125,54 +146,69 @@ export default function AdminPage() {
   }
 
   return (
-    <div className='max-w-3xl mx-auto p-6'>
-      <h1 className='text-2xl font-bold mb-4'>Admin – Losowanie Tajemniczego Mikołaja 🎅</h1>
+    <div className='max-w-5xl mx-auto p-6'>
+      <h1 className='text-2xl font-bold mb-6 text-center'>🎅 Admin – Losowanie Tajemniczego Mikołaja</h1>
 
-      <div className='bg-white rounded shadow p-4 mb-4'>
-        <h2 className='font-semibold mb-2'>Lista uczestników ({users.length})</h2>
-        <ul className='space-y-3'>
-          {users.map((u) => (
-            <li key={u.id} className='border p-3 rounded'>
-              <div className='flex justify-between items-center mb-2'>
-                <div>
-                  <span className='font-medium'>
-                    {u.firstName} {u.lastName}
-                  </span>{' '}
-                  <span className='text-gray-400 text-sm'>({u.id})</span>
-                </div>
-                <div>{u.wishlist && u.wishlist.length > 0 ? '✔️' : '❌'}</div>
-              </div>
+      <div className='overflow-x-auto bg-white shadow rounded-lg mb-6 border'>
+        <table className='min-w-full text-sm text-left border-collapse'>
+          <thead>
+            <tr className='bg-gray-100 border-b'>
+              <th className='px-4 py-2 font-semibold'>Imię i nazwisko</th>
+              <th className='px-4 py-2 font-semibold text-center'>Lista życzeń 🎁</th>
+              <th className='px-4 py-2 font-semibold text-center'>Odkrył osobę 👀</th>
+              <th className='px-4 py-2 font-semibold'>Nie może wylosować</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => {
+              const hasWishlist = u.wishlist && u.wishlist.length > 0;
+              const revealed = pairs[u.id]?.revealed;
 
-              <div>
-                <label className='block text-sm font-medium mb-1'>Nie może wylosować:</label>
-                <select
-                  multiple
-                  value={u.excludedIds || []}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-                    void handleExcludeChange(u.id, selected);
-                  }}
-                  className='border rounded w-full p-2 text-sm h-24'
-                >
-                  {users
-                    .filter((cand) => cand.id !== u.id)
-                    .map((cand) => (
-                      <option key={cand.id} value={cand.id}>
-                        {cand.firstName} {cand.lastName}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </li>
-          ))}
-        </ul>
+              return (
+                <tr key={u.id} className='[&:not(:last-child)]:border-b hover:bg-gray-50'>
+                  <td className='px-4 py-2'>
+                    <span className='font-medium'>
+                      {u.firstName} {u.lastName}
+                    </span>
+                    <span className='text-gray-400 text-xs block'>{u.id}</span>
+                  </td>
+                  <td className='px-4 py-2 text-center'>
+                    {hasWishlist ? <span className='text-green-600'>✔️</span> : <span className='text-gray-400'>❌</span>}
+                  </td>
+                  <td className='px-4 py-2 text-center'>
+                    {revealed ? <span className='text-green-600 font-semibold'>✅ TAK</span> : <span className='text-gray-400'>—</span>}
+                  </td>
+                  <td className='px-4 py-2'>
+                    <select
+                      multiple
+                      value={u.excludedIds || []}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                        void handleExcludeChange(u.id, selected);
+                      }}
+                      className='border rounded w-full p-2 text-sm h-24'
+                    >
+                      {users
+                        .filter((cand) => cand.id !== u.id)
+                        .map((cand) => (
+                          <option key={cand.id} value={cand.id}>
+                            {cand.firstName} {cand.lastName}
+                          </option>
+                        ))}
+                    </select>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      <div className='flex gap-3'>
+      <div className='flex gap-3 justify-center'>
         <button
           disabled={isDrawing}
           onClick={handleDrawAll}
-          className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer ${isDrawing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600 cursor-pointer ${isDrawing ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isDrawing ? 'Losowanie...' : 'Wylosuj wszystkich 🎲'}
         </button>
@@ -180,7 +216,7 @@ export default function AdminPage() {
         <button
           disabled={isResetting}
           onClick={handleReset}
-          className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 cursor-pointer ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-red-500 text-white px-5 py-2 rounded hover:bg-red-600 cursor-pointer ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isResetting ? 'Resetuję...' : 'Resetuj losowanie ♻️'}
         </button>

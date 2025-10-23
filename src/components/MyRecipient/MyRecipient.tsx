@@ -16,6 +16,7 @@ export const MyRecipient = () => {
   const [recipient, setRecipient] = useState<Recipient | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasPairDoc, setHasPairDoc] = useState<boolean | null>(null);
 
   const fetchRecipient = async () => {
     if (!user) return;
@@ -23,35 +24,42 @@ export const MyRecipient = () => {
     const pairRef = doc(db, 'pairs', user.uid);
     const pairSnap = await getDoc(pairRef);
 
-    if (pairSnap.exists()) {
-      const { recipientId, revealed } = pairSnap.data() as {
-        recipientId: string;
-        revealed?: boolean;
-      };
+    if (!pairSnap.exists()) {
+      setHasPairDoc(false);
+      setLoading(false);
+      return;
+    }
 
-      if (!recipientId) {
-        setLoading(false);
-        return;
-      }
+    setHasPairDoc(true);
 
-      // If not revealed, do not fetch recipient details
-      if (!revealed) {
-        setRecipient(null);
-        setLoading(false);
-        return;
-      }
+    const { recipientId, revealed } = pairSnap.data() as {
+      recipientId: string;
+      revealed?: boolean;
+    };
 
-      const recipientRef = doc(db, 'users', recipientId);
-      const recipientSnap = await getDoc(recipientRef);
+    if (!recipientId) {
+      setLoading(false);
+      return;
+    }
 
-      if (recipientSnap.exists()) {
-        const data = recipientSnap.data();
-        setRecipient({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          wishlist: data.wishlist || [],
-        });
-      }
+    // jeśli para jest przypisana, ale jeszcze nie odkryta
+    if (!revealed) {
+      setRecipient(null);
+      setLoading(false);
+      return;
+    }
+
+    // pobierz dane wylosowanej osoby
+    const recipientRef = doc(db, 'users', recipientId);
+    const recipientSnap = await getDoc(recipientRef);
+
+    if (recipientSnap.exists()) {
+      const data = recipientSnap.data();
+      setRecipient({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        wishlist: data.wishlist || [],
+      });
     }
 
     setLoading(false);
@@ -79,9 +87,7 @@ export const MyRecipient = () => {
   };
 
   const drawRecipient = async () => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
     setIsDrawing(true);
 
     const pairRef = doc(db, 'pairs', user.uid);
@@ -102,7 +108,7 @@ export const MyRecipient = () => {
       return alert('Twoja wylosowana osoba jest już odkryta 🎁');
     }
 
-    // Set pair as revealed
+    // odkryj osobę
     await updateDoc(pairRef, { revealed: true });
     await fetchRecipient();
     setIsDrawing(false);
@@ -129,9 +135,20 @@ export const MyRecipient = () => {
     );
   }
 
+  // 🔸 Jeśli nie było jeszcze losowania przez admina
+  if (hasPairDoc === false) {
+    return (
+      <div className='bg-yellow-100 p-4 rounded shadow text-center'>
+        <p className='text-gray-700'>Losowanie jeszcze się nie odbyło. 🎁</p>
+        <p className='text-gray-700'>Uzupełnij profil i przygotuj swoją listę życzeń</p>
+      </div>
+    );
+  }
+
+  // 🔸 Jeśli użytkownik nie odkrył jeszcze swojej osoby
   if (!recipient) {
     return (
-      <div className='bg-yellow-100 p-4 rounded shadow'>
+      <div className='bg-yellow-100 p-4 rounded shadow text-center'>
         <p>Nie znasz jeszcze swojej wylosowanej osoby 🎅</p>
         <button onClick={drawRecipient} className='bg-red-600 text-white px-4 py-2 cursor-pointer rounded hover:bg-red-700 mt-3'>
           Wylosuj osobę 🎲
@@ -140,6 +157,7 @@ export const MyRecipient = () => {
     );
   }
 
+  // 🔸 Jeśli już odkryto wylosowaną osobę
   return (
     <div className='bg-white shadow rounded p-4 mb-6'>
       <h2 className='text-lg font-semibold mb-2'>Twoja wylosowana osoba 🎁</h2>
