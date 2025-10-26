@@ -171,7 +171,7 @@ export const MyRecipient = () => {
 
   // 🔸 Jeśli już odkryto wylosowaną osobę
   return (
-    <div className='bg-white shadow rounded p-4 mb-6'>
+    <div className='bg-blue-500 text-white shadow rounded p-4 mb-6'>
       <h2 className='text-2xl font-semibold mb-3'>Twoja wylosowana osoba</h2>
       <p className='mb-3'>
         <span className='font-bold'>
