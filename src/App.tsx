@@ -15,8 +15,8 @@ export default function App() {
   }
 
   return (
-    <div className='h-full bg-[url(/bg.jpg)] bg-no-repeat bg-cover'>
-      <div className='h-full bg-blue-500/50'>
+    <div className='md:h-full bg-[url(/bg.jpg)] bg-no-repeat bg-cover'>
+      <div className='md:h-full bg-blue-500/50'>
         <Snowfall
           color='white'
           snowflakeCount={1000}

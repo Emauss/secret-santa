@@ -60,11 +60,12 @@ export const Wishlist = () => {
   return (
     <div className='bg-white shadow rounded p-4'>
       <h2 className='text-2xl font-semibold mb-3'>Moja lista życzeń</h2>
-      <div className='flex gap-2 mb-2'>
+      <div className='flex gap-2 mb-2 max-w-full'>
         <input
           type='text'
+          name='wishlist'
           placeholder='Dodaj prezent...'
-          className='flex-1 border rounded p-2'
+          className='flex-1 border rounded p-2 w-3/4'
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
         />
