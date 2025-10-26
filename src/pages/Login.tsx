@@ -23,7 +23,7 @@ export default function Login() {
   };
 
   return (
-    <div className='flex h-screen items-center justify-center'>
+    <div className='flex h-screen items-center justify-center relative'>
       <form onSubmit={handleSubmit} className='bg-white p-6 rounded-xl shadow-md w-80'>
         <h1 className='text-2xl font-bold mb-4 text-center'>Secret Santa 🎅</h1>
         {error && <p className='text-red-500 mb-2 text-sm'>{error}</p>}
