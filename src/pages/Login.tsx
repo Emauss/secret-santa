@@ -23,9 +23,9 @@ export default function Login() {
   };
 
   return (
-    <div className='flex h-screen items-center justify-center bg-gray-100'>
+    <div className='flex h-screen items-center justify-center'>
       <form onSubmit={handleSubmit} className='bg-white p-6 rounded-xl shadow-md w-80'>
-        <h1 className='text-xl font-bold mb-4 text-center'>Secret Santa 🎅</h1>
+        <h1 className='text-2xl font-bold mb-4 text-center'>Secret Santa 🎅</h1>
         {error && <p className='text-red-500 mb-2 text-sm'>{error}</p>}
 
         <input type='email' placeholder='Email' className='w-full mb-2 p-2 border rounded' value={email} onChange={(e) => setEmail(e.target.value)} />

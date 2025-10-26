@@ -56,7 +56,7 @@ export const Profile = () => {
 
   return (
     <div className='bg-white shadow rounded p-4'>
-      <h2 className='text-lg font-semibold mb-2'>Profil</h2>
+      <h2 className='text-2xl font-semibold mb-3'>Profil</h2>
       <input
         type='text'
         placeholder='Imię'
@@ -71,7 +71,7 @@ export const Profile = () => {
         value={lastName}
         onChange={(e) => setLastName(e.target.value)}
       />
-      <button onClick={handleSave} className='bg-blue-500 text-white px-4 py-2 cursor-pointer rounded hover:bg-blue-600'>
+      <button onClick={handleSave} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded'>
         Zapisz profil
       </button>
     </div>

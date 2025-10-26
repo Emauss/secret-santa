@@ -59,7 +59,7 @@ export const Wishlist = () => {
 
   return (
     <div className='bg-white shadow rounded p-4'>
-      <h2 className='text-lg font-semibold mb-2'>Moja lista życzeń 🎁</h2>
+      <h2 className='text-2xl font-semibold mb-3'>Moja lista życzeń</h2>
       <div className='flex gap-2 mb-2'>
         <input
           type='text'
@@ -68,14 +68,15 @@ export const Wishlist = () => {
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
         />
-        <button onClick={handleAdd} className='bg-green-500 text-white px-4 py-2 cursor-pointer rounded hover:bg-green-600'>
+        <button onClick={handleAdd} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded text-2xl'>
           +
         </button>
       </div>
       <ul className='list-disc mt-4'>
+        <h2 className='text-2xl font-semibold mb-3'>Drogi Mikołaju, w tym roku życzę sobie:</h2>
         {wishlist.map((item) => (
           <li key={item} className='flex justify-between items-center mb-1'>
-            <span>✅&nbsp;{item}</span>
+            <span>✔&nbsp;{item}</span>
             <button onClick={() => handleRemove(item)} className='text-red-500 cursor-pointer hover:underline text-sm'>
               usuń
             </button>
