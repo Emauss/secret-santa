@@ -4,11 +4,12 @@ import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import type { WishlistItem } from '..';
 
 type Recipient = {
   firstName: string;
   lastName: string;
-  wishlist: string[];
+  wishlist: WishlistItem[];
 };
 
 export const MyRecipient = () => {
@@ -157,7 +158,6 @@ export const MyRecipient = () => {
     );
   }
 
-  // 🔸 Jeśli użytkownik nie odkrył jeszcze swojej osoby
   if (!recipient) {
     return (
       <div className='bg-yellow-100 p-4 rounded shadow text-center'>
@@ -169,7 +169,6 @@ export const MyRecipient = () => {
     );
   }
 
-  // 🔸 Jeśli już odkryto wylosowaną osobę
   return (
     <div className='bg-blue-500 text-white shadow rounded p-4 mb-6'>
       <h2 className='text-2xl font-semibold mb-3'>Twoja wylosowana osoba</h2>
@@ -183,11 +182,18 @@ export const MyRecipient = () => {
       {recipient.wishlist.length > 0 ? (
         <ul className='list-disc pl-5'>
           {recipient.wishlist.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item.name}>
+              <div>
+                {item.name}{' '}
+                <a href={item.link} target='_blank' rel='noopener noreferrer' className='text-yellow-500 hover:underline ml-2 text-sm'>
+                  [LINK]
+                </a>
+              </div>
+            </li>
           ))}
         </ul>
       ) : (
-        <p className='text-gray-500'>Brak życzeń dodanych</p>
+        <p className='text-gray-200'>Brak dodanych życzeń</p>
       )}
     </div>
   );

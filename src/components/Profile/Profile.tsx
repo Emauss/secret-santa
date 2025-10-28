@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, type DocumentData } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
 import { toast } from 'sonner';
 
 export const Profile = () => {
   const { user, loading: authLoading } = useAuth();
+  const [data, setData] = useState<DocumentData | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ export const Profile = () => {
 
     if (snap.exists()) {
       const data = snap.data();
+      setData(data);
       setFirstName(data.firstName || '');
       setLastName(data.lastName || '');
     } else {
@@ -44,6 +46,8 @@ export const Profile = () => {
     try {
       await updateDoc(userRef, { firstName, lastName });
       toast.success('Profil zapisany pomyślnie');
+
+      void fetchProfile();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       toast.error('Wystąpił problem z zapisaniem profilu: ' + e.message);
@@ -72,7 +76,7 @@ export const Profile = () => {
         onChange={(e) => setLastName(e.target.value)}
       />
       <button onClick={handleSave} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded'>
-        Zapisz profil
+        {data?.firstName && data?.lastName ? 'Edytuj' : 'Zapisz'} profil
       </button>
     </div>
   );

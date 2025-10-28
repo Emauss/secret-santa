@@ -11,7 +11,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className='h-full max-w-md mx-auto p-6 flex flex-col gap-6 relative z-10'>
+    <div className='max-w-md mx-auto p-6 flex flex-col gap-6 relative z-10'>
       <h1 className='text-5xl text-center text-white'>Panel użytkownika</h1>
       <Profile />
       <Wishlist />
@@ -21,7 +21,7 @@ export default function Dashboard() {
           Panel Admina
         </button>
       )}
-      <button onClick={() => signOut(auth)} className='bg-red-500 text-white px-4 py-2 cursor-pointer rounded hover:bg-red-600'>
+      <button onClick={() => signOut(auth)} className='bg-red-500 text-white px-4 py-2 mb-3 cursor-pointer rounded hover:bg-red-600'>
         Wyloguj
       </button>
     </div>
