@@ -146,7 +146,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className='max-w-5xl mx-auto p-6'>
+    <div className='max-w-5xl mx-auto p-6 relative z-10'>
       <h1 className='text-2xl font-bold mb-6 text-center'>🎅 Admin – Losowanie Tajemniczego Mikołaja</h1>
 
       <div className='overflow-x-auto bg-white shadow rounded-lg mb-6 border'>
