@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, updateDoc, type DocumentData } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
 import { toast } from 'sonner';
 
 export const Profile = () => {
   const { user, loading: authLoading } = useAuth();
-  const [data, setData] = useState<DocumentData | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fetchProfile = async () => {
     if (!user) {
@@ -21,9 +21,12 @@ export const Profile = () => {
 
     if (snap.exists()) {
       const data = snap.data();
-      setData(data);
       setFirstName(data.firstName || '');
       setLastName(data.lastName || '');
+
+      if (!!data?.firstName && !!data?.lastName) {
+        setIsCollapsed(true);
+      }
     } else {
       await setDoc(userRef, { firstName: '', lastName: '', wishlist: [] });
     }
@@ -38,6 +41,11 @@ export const Profile = () => {
 
   const handleSave = async () => {
     if (!user) {
+      return;
+    }
+
+    if (isCollapsed) {
+      setIsCollapsed(false);
       return;
     }
 
@@ -61,22 +69,26 @@ export const Profile = () => {
   return (
     <div className='bg-white shadow rounded p-4'>
       <h2 className='text-2xl font-semibold mb-3'>Profil</h2>
-      <input
-        type='text'
-        placeholder='Imię'
-        className='w-full border rounded p-2 mb-2'
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-      />
-      <input
-        type='text'
-        placeholder='Nazwisko'
-        className='w-full border rounded p-2 mb-2'
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
-      />
+      {!isCollapsed && (
+        <>
+          <input
+            type='text'
+            placeholder='Imię'
+            className='w-full border rounded p-2 mb-2'
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          <input
+            type='text'
+            placeholder='Nazwisko'
+            className='w-full border rounded p-2 mb-2'
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </>
+      )}
       <button onClick={handleSave} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded'>
-        {data?.firstName && data?.lastName ? 'Edytuj' : 'Zapisz'} profil
+        {isCollapsed ? 'Edytuj' : 'Zapisz'} profil
       </button>
     </div>
   );
