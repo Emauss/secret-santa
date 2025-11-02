@@ -68,7 +68,12 @@ export const Profile = () => {
 
   return (
     <div className='bg-white shadow rounded p-4'>
-      <h2 className='text-2xl font-semibold mb-3'>Profil</h2>
+      <h2 className='text-2xl font-semibold mb-2'>Profil</h2>
+      {firstName && lastName && isCollapsed && (
+        <p className='text-lg mb-3'>
+          {firstName} {lastName}
+        </p>
+      )}
       {!isCollapsed && (
         <>
           <input
