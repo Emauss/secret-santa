@@ -185,9 +185,11 @@ export const MyRecipient = () => {
             <li key={item.name}>
               <div>
                 {item.name}{' '}
-                <a href={item.link} target='_blank' rel='noopener noreferrer' className='text-yellow-500 hover:underline ml-2 text-sm'>
-                  [LINK]
-                </a>
+                {item.link && (
+                  <a href={item.link} target='_blank' rel='noopener noreferrer' className='text-yellow-500 hover:underline ml-2 text-sm'>
+                    [LINK]
+                  </a>
+                )}
               </div>
             </li>
           ))}

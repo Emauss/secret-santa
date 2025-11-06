@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks';
 
 export type WishlistItem = {
   name: string;
-  link?: string;
+  link?: string | null;
 };
 
 export const Wishlist = () => {
@@ -45,7 +45,7 @@ export const Wishlist = () => {
     if (editingIndex !== null) {
       // Tryb edycji
       const updated = [...wishlist];
-      updated[editingIndex] = { name: newItem.trim(), link: newLink.trim() || undefined };
+      updated[editingIndex] = { name: newItem.trim(), link: newLink.trim() || null };
       setWishlist(updated);
       setEditingIndex(null);
       setNewItem('');
@@ -53,7 +53,7 @@ export const Wishlist = () => {
       await saveWishlist(updated);
     } else {
       // Tryb dodawania
-      const updated = [...wishlist, { name: newItem.trim(), link: newLink.trim() || undefined }];
+      const updated = [...wishlist, { name: newItem.trim(), link: newLink.trim() || null }];
       setWishlist(updated);
       setNewItem('');
       setNewLink('');
