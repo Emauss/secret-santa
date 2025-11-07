@@ -1,5 +1,5 @@
 export const Spinner = () => (
-  <div className='text-center h-full flex justify-center items-center'>
+  <div className='min-h-lvh text-center h-full flex justify-center items-center'>
     <div role='status'>
       <svg
         aria-hidden='true'
