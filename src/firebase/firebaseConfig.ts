@@ -3,12 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyAAIRr0AEwT348bux8hWKFPm_bJiXc8Zns',
-  authDomain: 'secretsanta-c32f4.firebaseapp.com',
-  projectId: 'secretsanta-c32f4',
-  storageBucket: 'secretsanta-c32f4.firebasestorage.app',
-  messagingSenderId: '1023415231199',
-  appId: '1:1023415231199:web:7c675aabc8bb90f2a97f6a',
+  apiKey: 'AIzaSyD4JbmdrsNYQGBTsXzmHJ84-SiTb4WIKJ0',
+  authDomain: 'secret-santa-okroj.firebaseapp.com',
+  projectId: 'secret-santa-okroj',
+  storageBucket: 'secret-santa-okroj.firebasestorage.app',
+  messagingSenderId: '401076994229',
+  appId: '1:401076994229:web:9cbaaa49a5e01a9c4b3efc',
 };
 
 const app = initializeApp(firebaseConfig);

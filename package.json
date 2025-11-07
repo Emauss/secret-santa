@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "deploy": "gh-pages -d build",
+    "deploy": "firebase deploy",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
