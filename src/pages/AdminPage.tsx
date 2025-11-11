@@ -63,10 +63,8 @@ export default function AdminPage() {
 
     for (const giver of users) {
       const possibleRecipients = available.filter((r) => {
-        const sameLastName =
-          r.lastName.toLowerCase().includes(giver.lastName.toLowerCase()) || giver.lastName.toLowerCase().includes(r.lastName.toLowerCase());
         const excluded = giver.excludedIds?.includes(r.id);
-        return r.id !== giver.id && !sameLastName && !excluded;
+        return r.id !== giver.id && !excluded;
       });
 
       if (possibleRecipients.length === 0) {
