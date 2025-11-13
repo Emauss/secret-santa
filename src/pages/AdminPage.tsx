@@ -75,7 +75,7 @@ export default function AdminPage() {
       const recipient = possibleRecipients[randomIndex];
       pairs[giver.id] = recipient.id;
 
-      // usuń wylosowanego z listy
+      // Remove the selected recipient from available list
       available.splice(
         available.findIndex((r) => r.id === recipient.id),
         1

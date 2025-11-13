@@ -43,7 +43,7 @@ export const Wishlist = () => {
     }
 
     if (editingIndex !== null) {
-      // Tryb edycji
+      // update mode
       const updated = [...wishlist];
       updated[editingIndex] = { name: newItem.trim(), link: newLink.trim() || null };
       setWishlist(updated);
@@ -52,7 +52,7 @@ export const Wishlist = () => {
       setNewLink('');
       await saveWishlist(updated);
     } else {
-      // Tryb dodawania
+      // add mode
       const updated = [...wishlist, { name: newItem.trim(), link: newLink.trim() || null }];
       setWishlist(updated);
       setNewItem('');

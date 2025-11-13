@@ -43,14 +43,13 @@ export const MyRecipient = () => {
       return;
     }
 
-    // jeśli para jest przypisana, ale jeszcze nie odkryta
+    // if not revealed, do not fetch recipient data
     if (!revealed) {
       setRecipient(null);
       setLoading(false);
       return;
     }
 
-    // pobierz dane wylosowanej osoby
     const recipientRef = doc(db, 'users', recipientId);
     const recipientSnap = await getDoc(recipientRef);
 
@@ -121,7 +120,7 @@ export const MyRecipient = () => {
       return alert('Twoja wylosowana osoba jest już odkryta 🎁');
     }
 
-    // odkryj osobę
+    // show recipient
     await updateDoc(pairRef, { revealed: true });
     await fetchRecipient();
     setIsDrawing(false);
@@ -148,7 +147,7 @@ export const MyRecipient = () => {
     );
   }
 
-  // 🔸 Jeśli nie było jeszcze losowania przez admina
+  // If there's no drawn pair document
   if (hasPairDoc === false) {
     return (
       <div className='bg-yellow-100 p-4 rounded shadow text-center'>
