@@ -15,11 +15,11 @@ export default function App() {
   }
 
   return (
-    <div className='md:min-h-lvh bg-[url(/bg.jpg)] bg-no-repeat bg-cover'>
-      <div className='md:min-h-lvh bg-blue-500/50'>
+    <div className='md:min-h-lvh bg-[url(/bg.webp)] bg-no-repeat bg-cover bg-center'>
+      <div className='md:min-h-lvh bg-blue-300/20'>
         <Snowfall
           color='white'
-          snowflakeCount={1000}
+          snowflakeCount={250}
           style={{
             position: 'fixed',
             width: '100vw',

@@ -77,7 +77,7 @@ export default function Login() {
   };
 
   const linkClass =
-    'block w-full text-center text-blue-500 cursor-pointer text-sm hover:underline';
+    'block w-full text-center text-blue-700 cursor-pointer text-sm hover:underline';
 
   return (
     <div className='flex h-screen items-center justify-center relative'>
@@ -85,13 +85,13 @@ export default function Login() {
         onSubmit={handleSubmit}
         className='bg-white p-6 rounded-xl shadow-md w-80'
       >
-        <h1 className='text-3xl font-bold mb-4 text-center'>Secret Santa</h1>
+        <h1 className='text-4xl font-bold mb-4 text-center'>Secret Santa</h1>
         {mode === 'reset' && (
           <p className='text-sm text-gray-600 mb-3 text-center'>
             Podaj swój email, a wyślemy Ci link do ustawienia nowego hasła.
           </p>
         )}
-        {error && <p className='text-red-500 mb-2 text-sm'>{error}</p>}
+        {error && <p className='text-amber-500 mb-2 text-sm'>{error}</p>}
 
         <input
           type='email'
@@ -114,13 +114,13 @@ export default function Login() {
           <button
             type='button'
             onClick={() => switchMode('reset')}
-            className='block ml-auto mb-3 text-blue-500 cursor-pointer text-xs hover:underline'
+            className='block ml-auto mb-3 text-amber-600 cursor-pointer text-xs hover:underline'
           >
             Nie pamiętasz hasła?
           </button>
         )}
 
-        <button className='w-full bg-blue-500 text-white py-2 cursor-pointer rounded mb-2 hover:bg-blue-600'>
+        <button className='w-full bg-blue-700 text-white py-2 cursor-pointer rounded mb-2 hover:bg-blue-600'>
           {mode === 'register'
             ? 'Zarejestruj'
             : mode === 'reset'

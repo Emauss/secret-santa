@@ -44,11 +44,6 @@ export const Profile = () => {
       return;
     }
 
-    if (isCollapsed) {
-      setIsCollapsed(false);
-      return;
-    }
-
     const userRef = doc(db, 'users', user.uid);
 
     try {
@@ -68,11 +63,35 @@ export const Profile = () => {
 
   return (
     <div className='bg-white shadow rounded p-4'>
-      <h2 className='text-2xl font-semibold mb-2'>Profil</h2>
+      <h2 className='text-xl font-semibold mb-2'>Profil</h2>
       {firstName && lastName && isCollapsed && (
-        <p className='text-lg mb-3'>
-          {firstName} {lastName}
-        </p>
+        <div className='flex items-center gap-2'>
+          <p className='text-2xl fancy-font'>
+            {firstName} {lastName}
+          </p>
+          <button
+            type='button'
+            onClick={() => setIsCollapsed(false)}
+            aria-label='Edytuj profil'
+            title='Edytuj profil'
+            className='text-blue-700 hover:text-blue-600 cursor-pointer p-1 rounded'
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth={2}
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className='w-4 h-4'
+              aria-hidden='true'
+            >
+              <path d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z' />
+              <path d='m15 5 4 4' />
+            </svg>
+          </button>
+        </div>
       )}
       {!isCollapsed && (
         <>
@@ -90,11 +109,14 @@ export const Profile = () => {
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
+          <button
+            onClick={handleSave}
+            className='bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded'
+          >
+            Zapisz profil
+          </button>
         </>
       )}
-      <button onClick={handleSave} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded'>
-        {isCollapsed ? 'Edytuj' : 'Zapisz'} profil
-      </button>
     </div>
   );
 };

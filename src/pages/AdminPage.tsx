@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { useAuth } from '../hooks';
 import { db } from '../firebase';
 import { Spinner } from '../components';
@@ -47,13 +54,20 @@ export default function AdminPage() {
     const map: Record<string, PairData> = {};
     snap.forEach((docSnap) => {
       const data = docSnap.data() as PairData;
-      map[docSnap.id] = { recipientId: data.recipientId, revealed: !!data.revealed };
+      map[docSnap.id] = {
+        recipientId: data.recipientId,
+        revealed: !!data.revealed,
+      };
     });
     setPairs(map);
   };
 
   const handleExcludeChange = async (userId: string, selectedIds: string[]) => {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, excludedIds: selectedIds } : u)));
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId ? { ...u, excludedIds: selectedIds } : u,
+      ),
+    );
     await updateDoc(doc(db, 'users', userId), { excludedIds: selectedIds });
   };
 
@@ -68,7 +82,9 @@ export default function AdminPage() {
       });
 
       if (possibleRecipients.length === 0) {
-        throw new Error(`Nie udało się wylosować dla ${giver.firstName} ${giver.lastName}`);
+        throw new Error(
+          `Nie udało się wylosować dla ${giver.firstName} ${giver.lastName}`,
+        );
       }
 
       const randomIndex = Math.floor(Math.random() * possibleRecipients.length);
@@ -78,7 +94,7 @@ export default function AdminPage() {
       // Remove the selected recipient from available list
       available.splice(
         available.findIndex((r) => r.id === recipient.id),
-        1
+        1,
       );
     }
 
@@ -87,7 +103,9 @@ export default function AdminPage() {
 
   const handleDrawAll = async () => {
     if (users.length < 2) {
-      return alert('Potrzebujesz co najmniej 2 uczestników, aby rozpocząć losowanie.');
+      return alert(
+        'Potrzebujesz co najmniej 2 uczestników, aby rozpocząć losowanie.',
+      );
     }
 
     setIsDrawing(true);
@@ -100,7 +118,9 @@ export default function AdminPage() {
           revealed: false,
         });
       }
-      toast.success('Losowanie zakończone pomyślnie! 🎅 Wszystkie pary zapisane.');
+      toast.success(
+        'Losowanie zakończone pomyślnie! 🎅 Wszystkie pary zapisane.',
+      );
       await fetchPairs();
     } catch (err) {
       console.error(err);
@@ -111,7 +131,11 @@ export default function AdminPage() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Czy na pewno chcesz zresetować losowanie? Wszystkie przypisania zostaną usunięte!')) {
+    if (
+      !confirm(
+        'Czy na pewno chcesz zresetować losowanie? Wszystkie przypisania zostaną usunięte!',
+      )
+    ) {
       return;
     }
     setIsResetting(true);
@@ -145,15 +169,21 @@ export default function AdminPage() {
 
   return (
     <div className='max-w-5xl mx-auto p-6 relative z-10'>
-      <h1 className='text-2xl font-bold mb-6 text-center text-white'>🎅 Admin – Losowanie Tajemniczego Mikołaja</h1>
+      <h1 className='text-3xl font-bold mb-6 text-center text-white'>
+        Admin – Losowanie Tajemniczego Mikołaja
+      </h1>
 
       <div className='overflow-x-auto bg-white shadow rounded-lg mb-6 border'>
         <table className='min-w-full text-sm text-left border-collapse'>
           <thead>
             <tr className='bg-gray-100 border-b'>
               <th className='px-4 py-2 font-semibold'>Imię i nazwisko</th>
-              <th className='px-4 py-2 font-semibold text-center'>Lista życzeń 🎁</th>
-              <th className='px-4 py-2 font-semibold text-center'>Odkrył osobę 👀</th>
+              <th className='px-4 py-2 font-semibold text-center'>
+                Lista życzeń 🎁
+              </th>
+              <th className='px-4 py-2 font-semibold text-center'>
+                Odkrył osobę 👀
+              </th>
               <th className='px-4 py-2 font-semibold'>Nie może wylosować</th>
             </tr>
           </thead>
@@ -163,7 +193,10 @@ export default function AdminPage() {
               const revealed = pairs[u.id]?.revealed;
 
               return (
-                <tr key={u.id} className='[&:not(:last-child)]:border-b hover:bg-gray-50'>
+                <tr
+                  key={u.id}
+                  className='[&:not(:last-child)]:border-b hover:bg-gray-50'
+                >
                   <td className='px-4 py-2'>
                     <span className='font-medium'>
                       {u.firstName} {u.lastName}
@@ -171,17 +204,29 @@ export default function AdminPage() {
                     <span className='text-gray-400 text-xs block'>{u.id}</span>
                   </td>
                   <td className='px-4 py-2 text-center'>
-                    {hasWishlist ? <span className='text-green-600'>✔️</span> : <span className='text-gray-400'>❌</span>}
+                    {hasWishlist ? (
+                      <span className='text-green-600'>✔️</span>
+                    ) : (
+                      <span className='text-gray-400'>❌</span>
+                    )}
                   </td>
                   <td className='px-4 py-2 text-center'>
-                    {revealed ? <span className='text-green-600 font-semibold'>✅ TAK</span> : <span className='text-gray-400'>—</span>}
+                    {revealed ? (
+                      <span className='text-green-600 font-semibold'>
+                        ✅ TAK
+                      </span>
+                    ) : (
+                      <span className='text-gray-400'>—</span>
+                    )}
                   </td>
                   <td className='px-4 py-2'>
                     <select
                       multiple
                       value={u.excludedIds || []}
                       onChange={(e) => {
-                        const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                        const selected = Array.from(
+                          e.target.selectedOptions,
+                        ).map((opt) => opt.value);
                         void handleExcludeChange(u.id, selected);
                       }}
                       className='border rounded w-full p-2 text-sm h-24'
@@ -206,7 +251,7 @@ export default function AdminPage() {
         <button
           disabled={isDrawing}
           onClick={handleDrawAll}
-          className={`bg-blue-500 text-white px-5 py-2 rounded hover:bg-blue-600 cursor-pointer ${isDrawing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-blue-700 text-white px-5 py-2 rounded hover:bg-blue-600 cursor-pointer ${isDrawing ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isDrawing ? 'Losowanie...' : 'Wylosuj wszystkich 🎲'}
         </button>
@@ -214,7 +259,7 @@ export default function AdminPage() {
         <button
           disabled={isResetting}
           onClick={handleReset}
-          className={`bg-red-500 text-white px-5 py-2 rounded hover:bg-red-600 cursor-pointer ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-amber-500 text-white px-5 py-2 rounded hover:bg-amber-400 cursor-pointer ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isResetting ? 'Resetuję...' : 'Resetuj losowanie ♻️'}
         </button>

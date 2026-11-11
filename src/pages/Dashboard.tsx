@@ -17,11 +17,17 @@ export default function Dashboard() {
       <Wishlist />
       <MyRecipient />
       {isAdmin(user?.uid) && (
-        <button onClick={() => navigate('/admin')} className='bg-blue-800 text-white px-4 py-2 cursor-pointer rounded hover:bg-blue-700'>
+        <button
+          onClick={() => navigate('/admin')}
+          className='bg-blue-800 text-white px-4 py-2 cursor-pointer rounded hover:bg-blue-700'
+        >
           Panel Admina
         </button>
       )}
-      <button onClick={() => signOut(auth)} className='bg-red-500 text-white px-4 py-2 mb-3 cursor-pointer rounded hover:bg-red-600'>
+      <button
+        onClick={() => signOut(auth)}
+        className='bg-amber-500 text-white px-4 py-2 mb-3 cursor-pointer rounded hover:bg-amber-400'
+      >
         Wyloguj
       </button>
     </div>

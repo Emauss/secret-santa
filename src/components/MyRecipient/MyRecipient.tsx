@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import type { WishlistItem } from '..';
+import { normalizeLink } from '../../utils';
 
 type Recipient = {
   firstName: string;
@@ -68,7 +69,12 @@ export const MyRecipient = () => {
   const launchConfetti = () => {
     const duration = 2000;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 25, spread: 360, ticks: 60, zIndex: 9999 };
+    const defaults = {
+      startVelocity: 25,
+      spread: 360,
+      ticks: 60,
+      zIndex: 9999,
+    };
 
     const interval: ReturnType<typeof setInterval> = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
@@ -107,7 +113,9 @@ export const MyRecipient = () => {
 
     if (!pairSnap.exists()) {
       setIsDrawing(false);
-      return alert('Nie masz jeszcze przypisanej osoby. Admin musi najpierw przeprowadzić losowanie.');
+      return alert(
+        'Nie masz jeszcze przypisanej osoby. Admin musi najpierw przeprowadzić losowanie.',
+      );
     }
 
     const { revealed } = pairSnap.data() as {
@@ -150,9 +158,15 @@ export const MyRecipient = () => {
   // If there's no drawn pair document
   if (hasPairDoc === false) {
     return (
-      <div className='bg-yellow-100 p-4 rounded shadow text-center'>
-        <p className='text-gray-700'>Losowanie jeszcze się nie odbyło. 🎁</p>
-        <p className='text-gray-700'>Uzupełnij profil i przygotuj swoją listę życzeń</p>
+      <div className='bg-amber-300 p-4 rounded shadow text-center'>
+        {/* Gold star on a dark blue badge so it stands out on the amber card */}
+        <div className='mx-auto mb-2 flex h-11 w-11 text-4xl items-center justify-center rounded-full'>
+          🎅
+        </div>
+        <p className='text-gray-800'>Losowanie jeszcze się nie odbyło.</p>
+        <p className='text-gray-800'>
+          Uzupełnij profil i przygotuj swoją listę życzeń
+        </p>
       </div>
     );
   }
@@ -161,31 +175,39 @@ export const MyRecipient = () => {
     return (
       <div className='bg-yellow-100 p-4 rounded shadow text-center'>
         <p>Nie znasz jeszcze osoby której robisz prezent!</p>
-        <button onClick={drawRecipient} className='bg-red-600 text-white px-4 py-2 cursor-pointer rounded hover:bg-red-700 mt-3'>
-          Wylosuj osobę 🎲
+        <button
+          onClick={drawRecipient}
+          className='bg-amber-500 text-white px-4 py-2 cursor-pointer rounded hover:bg-amber-600 mt-3'
+        >
+          Wylosuj osobę 🎅
         </button>
       </div>
     );
   }
 
   return (
-    <div className='bg-blue-500 text-white shadow rounded p-4 mb-6'>
-      <h2 className='text-2xl font-semibold mb-3'>Twoja wylosowana osoba</h2>
+    <div className='bg-blue-700 text-white shadow rounded p-4 mb-6'>
+      <h2 className='text-xl font-semibold mb-3'>Prezent robisz dla:</h2>
       <p className='mb-3'>
-        <span className='font-bold'>
+        <span className='font-bold text-xl text-amber-300'>
           {recipient.firstName} {recipient.lastName}
         </span>
       </p>
 
-      <h3 className='mb-1'>Wymarzony prezent to:</h3>
+      <h3 className='mb-1 fancy-font text-2xl'>Wymarzony prezent to:</h3>
       {recipient.wishlist.length > 0 ? (
         <ul className='list-disc pl-5'>
           {recipient.wishlist.map((item) => (
             <li key={item.name}>
               <div>
                 {item.name}{' '}
-                {item.link && (
-                  <a href={item.link} target='_blank' rel='noopener noreferrer' className='text-yellow-500 hover:underline ml-2 text-sm'>
+                {normalizeLink(item.link) && (
+                  <a
+                    href={normalizeLink(item.link)!}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-yellow-500 hover:underline ml-2 text-sm'
+                  >
                     [LINK]
                   </a>
                 )}

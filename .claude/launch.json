@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev-gorczynscy",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:gorczynscy", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
+      "name": "dev-okroj",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:okroj", "--port", "5174", "--strictPort"],
+      "port": 5174
+    }
+  ]
+}

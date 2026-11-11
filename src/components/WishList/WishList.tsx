@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../hooks';
+import { extractLink, normalizeLink } from '../../utils';
+import { toast } from 'sonner';
 
 export type WishlistItem = {
   name: string;
@@ -38,27 +40,35 @@ export const Wishlist = () => {
   };
 
   const handleAdd = async () => {
-    if (!user || !newItem.trim()) {
+    if (!user) {
       return;
     }
 
-    if (editingIndex !== null) {
-      // update mode
-      const updated = [...wishlist];
-      updated[editingIndex] = { name: newItem.trim(), link: newLink.trim() || null };
-      setWishlist(updated);
-      setEditingIndex(null);
-      setNewItem('');
-      setNewLink('');
-      await saveWishlist(updated);
-    } else {
-      // add mode
-      const updated = [...wishlist, { name: newItem.trim(), link: newLink.trim() || null }];
-      setWishlist(updated);
-      setNewItem('');
-      setNewLink('');
-      await saveWishlist(updated);
+    // Keep only the actual URL from whatever was pasted (e.g. "Product name https://...")
+    const rawLink = newLink.trim();
+    const extracted = rawLink ? extractLink(rawLink) : null;
+    if (rawLink && !extracted) {
+      toast.error('Nie rozpoznano linku. Wklej adres strony, np. https://...');
+      return;
     }
+
+    // Share texts put the product name before the link – use it when the name is empty
+    const name = newItem.trim() || extracted?.textBefore || '';
+    if (!name) {
+      return;
+    }
+
+    const item: WishlistItem = { name, link: extracted?.url ?? null };
+    const updated =
+      editingIndex !== null
+        ? wishlist.map((existing, i) => (i === editingIndex ? item : existing))
+        : [...wishlist, item];
+
+    setWishlist(updated);
+    setEditingIndex(null);
+    setNewItem('');
+    setNewLink('');
+    await saveWishlist(updated);
   };
 
   const handleEdit = (index: number) => {
@@ -88,7 +98,7 @@ export const Wishlist = () => {
 
   return (
     <div className='bg-white shadow rounded p-4'>
-      <h2 className='text-2xl font-semibold mb-3'>Moja lista życzeń</h2>
+      <h2 className='text-xl font-semibold mb-3'>Moja lista życzeń</h2>
 
       <div className='flex flex-col gap-2 mb-4'>
         <input
@@ -105,40 +115,64 @@ export const Wishlist = () => {
           value={newLink}
           onChange={(e) => setNewLink(e.target.value)}
         />
-        <button onClick={handleAdd} className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded text-lg'>
-          {editingIndex !== null ? 'Zapisz zmiany' : 'Dodaj prezent 🎁'}
+        <button
+          onClick={handleAdd}
+          className='bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 cursor-pointer rounded text-lg'
+        >
+          {editingIndex !== null ? 'Zapisz zmiany' : 'Dodaj prezent'}
         </button>
       </div>
 
       <div>
         {wishlist.length > 0 ? (
           <>
-            <h2 className='text-2xl font-semibold mb-3'>Drogi Mikołaju, w tym roku życzę sobie:</h2>
+            <h2 className='text-2xl font-semibold mb-3 fancy-font'>
+              Drogi Mikołaju, w tym roku życzę sobie:
+            </h2>
             <ul className='list-disc mt-4 space-y-2'>
-              {wishlist.map((item, index) => (
-                <li key={index} className='flex justify-between items-center gap-2'>
+              {wishlist.map((item, index) => {
+                const link = normalizeLink(item.link);
+                return (
+                <li
+                  key={index}
+                  className='flex justify-between items-center gap-2'
+                >
                   <div>
                     <span>✔ {item.name}</span>
-                    {item.link && (
-                      <a href={item.link} target='_blank' rel='noopener noreferrer' className='text-blue-600 hover:underline ml-2 text-sm'>
+                    {link && (
+                      <a
+                        href={link}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-blue-600 hover:underline ml-2 text-sm'
+                      >
                         [LINK]
                       </a>
                     )}
                   </div>
                   <div className='flex gap-2'>
-                    <button onClick={() => handleEdit(index)} className='text-blue-600 hover:underline text-sm cursor-pointer'>
+                    <button
+                      onClick={() => handleEdit(index)}
+                      className='text-blue-600 hover:underline text-sm cursor-pointer'
+                    >
                       Edytuj
                     </button>
-                    <button onClick={() => handleRemove(item.name)} className='text-red-500 hover:underline text-sm cursor-pointer'>
+                    <button
+                      onClick={() => handleRemove(item.name)}
+                      className='text-amber-500 hover:underline text-sm cursor-pointer'
+                    >
                       Usuń
                     </button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </>
         ) : (
-          <p className='text-gray-500 italic mt-1'>Nie dodałeś jeszcze żadnych życzeń 🎅</p>
+          <p className='text-gray-500 italic mt-1'>
+            Nie dodałeś jeszcze żadnych życzeń 🎅
+          </p>
         )}
       </div>
     </div>
