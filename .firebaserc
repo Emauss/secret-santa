@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "secret-santa-okroj",
+    "okroj": "secret-santa-okroj"
+  }
+}

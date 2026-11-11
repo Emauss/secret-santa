@@ -1,69 +1,39 @@
-# React + TypeScript + Vite
+# Secret Santa
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Family Secret Santa app (React + TypeScript + Vite + Tailwind, Firebase Auth & Firestore).
 
-Currently, two official plugins are available:
+## Two families, one codebase
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The same app runs as two separate instances, one per family. Each has its own Firebase
+project (auth + Firestore) and its own hosting. The code lives on one branch (`main`);
+everything family-specific is in a Vite mode env file.
 
-## Expanding the ESLint configuration
+| Family | Mode / env file | URL | Hosting | Firebase project |
+| --- | --- | --- | --- | --- |
+| **Gorczyńscy** | `gorczynscy` / `.env.gorczynscy` | https://emauss.github.io/secret-santa/ | GitHub Pages (`gh-pages` branch) | `secretsanta-c32f4` |
+| **Okrój** | `okroj` / `.env.okroj` | https://secret-santa-okroj.web.app/ | Firebase Hosting | `secret-santa-okroj` |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Each env file holds:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- `BASE_PATH` – Vite `base` (`/secret-santa/` for the GitHub Pages subpath, `./` for Firebase)
+- `VITE_FIREBASE_*` – Firebase web config (public by design; data is protected by Firestore rules)
+- `VITE_ADMIN_UID` – UID of the family admin (can run the draw on `/admin`)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Scripts
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+
+pnpm dev:gorczynscy      # local dev against the Gorczyńscy Firebase project
+pnpm dev:okroj           # local dev against the Okrój Firebase project
+
+pnpm deploy:gorczynscy   # build + publish to GitHub Pages
+pnpm deploy:okroj        # build + firebase deploy (hosting)
+pnpm deploy:all          # both, one after another
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Note: dev mode talks to the **real** Firebase project of the chosen family.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+`deploy:okroj` uses the local `firebase-tools`; log in once with `pnpm exec firebase login`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The old `family/okroj` branch is kept only as history – don't develop on it.
